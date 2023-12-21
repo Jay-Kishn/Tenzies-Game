@@ -4,10 +4,26 @@ import {nanoid} from "nanoid"
 import Confetti from "react-confetti"
 
 export default function App() {
-
+    
     const [dice, setDice] = React.useState(allNewDice())
     const [tenzies, setTenzies] = React.useState(false)
     const [dieRolls,setDieRolls] = React.useState(0)
+    const [time, setTime] = React.useState(0);
+    const [highScore,setHighScore] = React.useState({min_time:9999999,min_rolls:9999})
+
+    React.useEffect(()=>{
+        let interval;
+        if(!tenzies){
+        interval = setInterval(function(){
+            setTime((prevTime)=>prevTime+10);
+        },100);
+        }else{
+            clearInterval(interval);
+        }
+
+        return ()=> clearInterval(interval);
+       
+    },[tenzies])
     
     React.useEffect(() => {
         const allHeld = dice.every(die => die.isHeld)
@@ -46,6 +62,9 @@ export default function App() {
         } else {
             setTenzies(false)
             setDieRolls(0)
+            setTime(0)
+            if(dieRolls < highScore.min_rolls)setHighScore((score)=>({...score,min_rolls:dieRolls}))
+            if(time < highScore.min_time)setHighScore((score)=>({...score,min_time:time}))
             setDice(allNewDice())
         }
     }
@@ -76,7 +95,15 @@ export default function App() {
             <div className="dice-container">
                 {diceElements}
             </div>
-            <p>Number of Rolls: {dieRolls}</p>
+            <p>Number of Rolls: {dieRolls} High Score : {highScore.min_rolls}</p>
+            <div>
+                <span>Timer:</span>
+                <span>{(Math.floor(time/6000))%60}min </span>
+                <span>{(Math.floor(time/100))%60}sec </span>
+                <span>High Score:</span>
+                <span>{(Math.floor(highScore.min_time/6000))%60}min </span>
+                <span>{(Math.floor(highScore.min_time/100))%60}sec </span>
+            </div>
             <button 
                 className="roll-dice" 
                 onClick={rollDice}
